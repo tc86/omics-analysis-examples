@@ -1,0 +1,49 @@
+## Pyclone-VI run to infer clonality
+## Author: Tamrin Chowdhury
+## Date: 5/1/2025
+
+from glob import glob
+import re
+
+
+# Directory where the input files are stored
+input_dir = "~/ith_analysis/pyclonevi_seqz/input"
+
+# Directory for the intermediate and output files
+intermediate_dir = "~/ith_analysis/pyclonevi_seqz/intermediate"
+output_dir = "~/ith_analysis/pyclonevi_seqz/output"
+log_dir = "~/ith_analysis/pyclonevi_seqz/logs"
+
+# Regular expression to match patient barcode pattern ******-****.tsv
+patient_pattern = r"[A-Z]{4}-[A-Z]{2}-[A-Z0-9]{4}-[A-Z]{3}"
+
+# List of patient files
+patient_files = [re.match(patient_pattern, f.split('/')[-1].replace('.tsv', '')).group() for f in glob(input_dir + "/*.tsv") if re.match(patient_pattern, f.split('/')[-1].replace('.tsv', ''))]
+
+rule all:
+    input:
+        expand(output_dir + "/{patient}.tsv", patient=patient_files)
+
+rule fit_pyclone_vi:
+    input:
+        tsv=input_dir + "/{patient}.tsv"
+    output:
+        h5=intermediate_dir + "/{patient}.h5"
+    log:
+        logfile=log_dir + "/{patient}.log"
+    shell:
+        """
+        pyclone-vi fit -i {input.tsv} -o {output.h5} -c 40 -d beta-binomial -r 10 &> {log.logfile}
+        """
+
+rule write_results:
+    input:
+        h5=intermediate_dir + "/{patient}.h5"
+    output:
+        tsv=output_dir + "/{patient}.tsv"
+    log:
+        logfile=log_dir + "/{patient}.log"
+    shell:
+        """
+        pyclone-vi write-results-file -i {input.h5} -o {output.tsv} &> {log.logfile}
+        """

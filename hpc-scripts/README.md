@@ -3,9 +3,8 @@
 Shell scripts for file organization and job submission on HPC clusters.
 
 **Included (to be added):**
-- Organize FASTQ files across multiple lanes
+- Organize WES pipeline downstream files for usage in pdf generation
 - Simple batch submission wrapper (Slurm/qsub)
-- File renaming / symlinking helpers
 
 **Notes:**
 - Scripts are lightweight examples and may need adjustment for specific HPC environments.
